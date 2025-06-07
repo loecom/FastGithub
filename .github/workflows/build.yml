@@ -20,8 +20,7 @@ jobs:
       uses: actions/setup-dotnet@v4  
       with:  
         dotnet-version: |  
-          6.0.x  
-          7.0.x  
+          8.0.x  
             
     - name: Restore dependencies  
       run: dotnet restore FastGithub.sln  
@@ -31,30 +30,18 @@ jobs:
         
     - name: Publish FastGithub  
       run: |  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub --self-contained true -r win-x64 --single-file  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-linux --self-contained true -r linux-x64 --single-file  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-osx --self-contained true -r osx-x64 --single-file  
+        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub --self-contained true -r win-x64 -p:PublishSingleFile=true  
+        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-linux --self-contained true -r linux-x64 -p:PublishSingleFile=true  
+        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-osx --self-contained true -r osx-x64 -p:PublishSingleFile=true  
           
     - name: Build UI (Windows only)  
       run: |  
         msbuild FastGithub.UI/FastGithub.UI.csproj /p:Configuration=Release /p:Platform="Any CPU"  
           
-    - name: Upload Windows artifacts  
+    - name: Upload artifacts  
       uses: actions/upload-artifact@v4  
       with:  
-        name: fastgithub-windows  
+        name: fastgithub-all-platforms  
         path: |  
-          ./publish/fastgithub/  
-          FastGithub.UI/bin/Release/  
-            
-    - name: Upload Linux artifacts  
-      uses: actions/upload-artifact@v4  
-      with:  
-        name: fastgithub-linux  
-        path: ./publish/fastgithub-linux/  
-          
-    - name: Upload macOS artifacts  
-      uses: actions/upload-artifact@v4  
-      with:  
-        name: fastgithub-osx  
-        path: ./publish/fastgithub-osx/
+          ./publish/  
+          FastGithub.UI/bin/Release/
