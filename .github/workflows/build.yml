@@ -57,6 +57,7 @@ jobs:
         dotnet build FastGithub.sln --configuration Release --verbosity quiet --nologo
 
     - name: Publish single-file artifacts with UI
+      shell: bash
       run: |
         # 发布主程序
         dotnet publish FastGithub/FastGithub.csproj \
