@@ -6,7 +6,6 @@
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
-                <TargetFramework>net8.0</TargetFramework>  
 	</PropertyGroup>
 
 	<ItemGroup>
