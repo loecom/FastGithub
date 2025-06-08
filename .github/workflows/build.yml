@@ -74,9 +74,8 @@ jobs:
         if [ "${{ matrix.runtime }}" == "win-x64" ]; then
           dotnet publish FastGithub.UI/FastGithub.UI.csproj \
             -c Release \
-            -r win-x64 \
-            --self-contained true \
-            -p:PublishSingleFile=true \
+            --verbosity quiet \
+            --nologo \
             -o ./publish/${{ matrix.runtime }}
         fi
 
