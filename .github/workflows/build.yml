@@ -57,14 +57,7 @@ jobs:
         dotnet build FastGithub.sln --configuration Release --verbosity quiet  
             
     - name: Publish single-file artifacts    
-      run: |    
-        dotnet publish FastGithub/FastGithub.csproj \  
-          -c Release \  
-          -r ${{ matrix.runtime }} \  
-          --self-contained true \  
-          -p:PublishSingleFile=true \  
-          -p:PublishTrimmed=true \  
-          -o ./publish/${{ matrix.runtime }}  
+      run: dotnet publish FastGithub/FastGithub.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/${{ matrix.runtime }}
             
     - name: Upload artifacts    
       uses: actions/upload-artifact@v4    
