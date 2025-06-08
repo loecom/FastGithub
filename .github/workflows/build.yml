@@ -44,7 +44,7 @@ jobs:
     - name: Build for ${{ matrix.os }}  
       run: |  
         dotnet restore FastGithub.sln  
-        dotnet build FastGithub.sln --configuration Release  
+        dotnet build FastGithub.sln --configuration Release --verbosity quiet
           
     - name: Publish artifacts  
       run: |  
