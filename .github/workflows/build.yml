@@ -53,8 +53,8 @@ jobs:
         
     - name: Build for ${{ matrix.os }}    
       run: |    
-        dotnet restore FastGithub.sln    
-        dotnet build FastGithub.sln --configuration Release --verbosity quiet  
+        dotnet restore FastGithub.sln --verbosity quiet --nologo
+        dotnet build FastGithub.sln --configuration Release --verbosity quiet --nologo
 
     - name: Publish single-file artifacts with UI
       run: |
@@ -65,6 +65,8 @@ jobs:
           --self-contained true \
           -p:PublishSingleFile=true \
           -p:PublishTrimmed=true \
+          --verbosity quiet \
+          --nologo \
           -o ./publish/${{ matrix.runtime }}
 
         # 发布 UI (仅 Windows)
