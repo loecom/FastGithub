@@ -2,9 +2,9 @@ name: Build and Release FastGithub
   
 on:  
   push:  
-    tags:  
-      - 'v*'  
-  workflow_dispatch:  
+    branches: [ main, master ]  
+  pull_request:  
+    branches: [ main, master ]  
   
 jobs:  
   build:  
