@@ -5,43 +5,53 @@ on:
     branches: [ main, master ]  
   pull_request:  
     branches: [ main, master ]  
-  release:  
-    types: [ published ]  
   
 jobs:  
   build:  
-    runs-on: windows-latest  
+    runs-on: ubuntu-latest  
       
     steps:  
-    - name: Checkout code  
-      uses: actions/checkout@v4  
-        
+    - uses: actions/checkout@v4  
+      
     - name: Setup .NET  
       uses: actions/setup-dotnet@v4  
       with:  
-        dotnet-version: |  
-          8.0.x  
-            
+        dotnet-version: '7.0.x'  
+      
     - name: Restore dependencies  
       run: dotnet restore FastGithub.sln  
-        
-    - name: Build solution  
-      run: dotnet build FastGithub.sln --configuration Release --no-restore  
-        
-    - name: Publish FastGithub  
-      run: |  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub --self-contained true -r win-x64 -p:PublishSingleFile=true  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-linux --self-contained true -r linux-x64 -p:PublishSingleFile=true  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/fastgithub-osx --self-contained true -r osx-x64 -p:PublishSingleFile=true  
+      
+    - name: Build  
+      run: dotnet build FastGithub.sln --no-restore --configuration Release  
+      
+    - name: Test  
+      run: dotnet test FastGithub.sln --no-build --configuration Release --verbosity normal  
+  
+  build-multi-platform:  
+    runs-on: ${{ matrix.os }}  
+    strategy:  
+      matrix:  
+        os: [ubuntu-latest, windows-latest, macos-latest]  
           
-    - name: Build UI (Windows only)  
+    steps:  
+    - uses: actions/checkout@v4  
+      
+    - name: Setup .NET  
+      uses: actions/setup-dotnet@v4  
+      with:  
+        dotnet-version: '7.0.x'  
+      
+    - name: Build for ${{ matrix.os }}  
       run: |  
-        msbuild FastGithub.UI/FastGithub.UI.csproj /p:Configuration=Release /p:Platform="Any CPU"  
+        dotnet restore FastGithub.sln  
+        dotnet build FastGithub.sln --configuration Release  
+          
+    - name: Publish artifacts  
+      run: |  
+        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/${{ matrix.os }}  
           
     - name: Upload artifacts  
       uses: actions/upload-artifact@v4  
       with:  
-        name: fastgithub-all-platforms  
-        path: |  
-          ./publish/  
-          FastGithub.UI/bin/Release/
+        name: fastgithub-${{ matrix.os }}  
+        path: ./publish/${{ matrix.os }}
