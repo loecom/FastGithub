@@ -55,10 +55,38 @@ jobs:
       run: |    
         dotnet restore FastGithub.sln    
         dotnet build FastGithub.sln --configuration Release --verbosity quiet  
-            
-    - name: Publish single-file artifacts    
-      run: dotnet publish FastGithub/FastGithub.csproj -c Release -r ${{ matrix.runtime }} --self-contained true -p:PublishSingleFile=true -p:PublishTrimmed=true -o ./publish/${{ matrix.runtime }}
-            
+
+    - name: Publish single-file artifacts with UI
+      run: |
+        # 发布主程序
+        dotnet publish FastGithub/FastGithub.csproj \
+          -c Release \
+          -r ${{ matrix.runtime }} \
+          --self-contained true \
+          -p:PublishSingleFile=true \
+          -p:PublishTrimmed=true \
+          -o ./publish/${{ matrix.runtime }}
+
+        # 发布 UI (仅 Windows)
+        if [ "${{ matrix.runtime }}" == "win-x64" ]; then
+          dotnet publish FastGithub.UI/FastGithub.UI.csproj \
+            -c Release \
+            -r win-x64 \
+            --self-contained true \
+            -p:PublishSingleFile=true \
+            -o ./publish/${{ matrix.runtime }}
+        fi
+
+    - name: Copy additional files
+      run: |
+        # 复制必要的配置文件和资源
+        cp README.md ./publish/${{ matrix.runtime }}/
+        cp README.html ./publish/${{ matrix.runtime }}/
+        cp LICENSE ./publish/${{ matrix.runtime }}/
+      
+        # 创建证书目录（运行时需要）  
+        mkdir -p ./publish/${{ matrix.runtime }}/cacert
+    
     - name: Upload artifacts    
       uses: actions/upload-artifact@v4    
       with:    
