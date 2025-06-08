@@ -1,31 +1,63 @@
-name: Build and Release FastGithub  
-  
-on:  
-  push:  
-    branches: [ main, master ]  
-  pull_request:  
-    branches: [ main, master ]  
-  
-jobs:  
-  build:  
-    runs-on: ubuntu-latest  
-    strategy:  
-      matrix:  
-        runtime: [win-x64, linux-x64, osx-x64]  
-      
-    steps:  
-    - uses: actions/checkout@v4  
-      
-    - name: Setup .NET  
-      uses: actions/setup-dotnet@v4  
-      with:  
-        dotnet-version: '7.0.x'  
-      
-    - name: Restore dependencies  
-      run: dotnet restore  
-      
-    - name: Build and Publish  
-      run: |  
+name: Build FastGithub    
+    
+on:    
+  push:    
+    branches: [ main, master, not-80-port ]    
+  pull_request:    
+    branches: [ main, master, not-80-port ]    
+    
+jobs:    
+  build:    
+    runs-on: ubuntu-latest    
+        
+    steps:    
+    - uses: actions/checkout@v4    
+        
+    - name: Setup .NET    
+      uses: actions/setup-dotnet@v4    
+      with:    
+        dotnet-version: '7.0.x'    
+        
+    - name: Restore dependencies    
+      run: dotnet restore FastGithub.sln    
+        
+    - name: Build    
+      run: dotnet build FastGithub.sln --no-restore --configuration Release --verbosity quiet  
+        
+    - name: Test    
+      run: dotnet test FastGithub.sln --no-build --configuration Release --verbosity normal    
+    
+  build-multi-platform:    
+    runs-on: ${{ matrix.os }}    
+    strategy:    
+      matrix:    
+        os: [ubuntu-latest, windows-latest, macos-latest]    
+        include:  
+          - os: ubuntu-latest  
+            runtime: linux-x64  
+            artifact-name: fastgithub-linux-x64  
+          - os: windows-latest  
+            runtime: win-x64  
+            artifact-name: fastgithub-win-x64  
+          - os: macos-latest  
+            runtime: osx-x64  
+            artifact-name: fastgithub-osx-x64  
+            
+    steps:    
+    - uses: actions/checkout@v4    
+        
+    - name: Setup .NET    
+      uses: actions/setup-dotnet@v4    
+      with:    
+        dotnet-version: '7.0.x'    
+        
+    - name: Build for ${{ matrix.os }}    
+      run: |    
+        dotnet restore FastGithub.sln    
+        dotnet build FastGithub.sln --configuration Release --verbosity quiet  
+            
+    - name: Publish single-file artifacts    
+      run: |    
         dotnet publish FastGithub/FastGithub.csproj \  
           -c Release \  
           -r ${{ matrix.runtime }} \  
@@ -33,19 +65,9 @@ jobs:
           -p:PublishSingleFile=true \  
           -p:PublishTrimmed=true \  
           -o ./publish/${{ matrix.runtime }}  
-      
-    - name: Create Archive  
-      run: |  
-        cd ./publish/${{ matrix.runtime }}  
-        if [[ "${{ matrix.runtime }}" == "win-x64" ]]; then  
-          zip -r ../../fastgithub-${{ matrix.runtime }}.zip .  
-        else  
-          tar -czf ../../fastgithub-${{ matrix.runtime }}.tar.gz .  
-        fi  
-      
-    - name: Upload Artifacts  
-      uses: actions/upload-artifact@v4  
-      with:  
-        name: fastgithub-${{ matrix.runtime }}  
-        path: |  
-          fastgithub-${{ matrix.runtime }}.*
+            
+    - name: Upload artifacts    
+      uses: actions/upload-artifact@v4    
+      with:    
+        name: ${{ matrix.artifact-name }}  
+        path: ./publish/${{ matrix.runtime }}
