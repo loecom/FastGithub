@@ -22,7 +22,7 @@ jobs:
       run: dotnet restore FastGithub.sln  
       
     - name: Build  
-      run: dotnet build FastGithub.sln --no-restore --configuration Release  
+      run: dotnet build FastGithub.sln --no-restore --configuration Release --verbosity quiet
       
     - name: Test  
       run: dotnet test FastGithub.sln --no-build --configuration Release --verbosity normal  
