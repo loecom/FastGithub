@@ -2,9 +2,9 @@ name: Build FastGithub
 
 on:
   push:
-    branches: [ main, master, not-80-port ]
+    branches: [ main, master ]
   pull_request:
-    branches: [ main, master, not-80-port ]
+    branches: [ main, master ]
 
 jobs:
   build:
