@@ -1,14 +1,17 @@
-name: Build FastGithub  
+name: Build and Release FastGithub  
   
 on:  
   push:  
-    branches: [ main, master ]  
-  pull_request:  
-    branches: [ main, master ]  
+    tags:  
+      - 'v*'  
+  workflow_dispatch:  
   
 jobs:  
   build:  
     runs-on: ubuntu-latest  
+    strategy:  
+      matrix:  
+        runtime: [win-x64, linux-x64, osx-x64]  
       
     steps:  
     - uses: actions/checkout@v4  
@@ -19,39 +22,30 @@ jobs:
         dotnet-version: '7.0.x'  
       
     - name: Restore dependencies  
-      run: dotnet restore FastGithub.sln  
+      run: dotnet restore  
       
-    - name: Build  
-      run: dotnet build FastGithub.sln --no-restore --configuration Release --verbosity quiet
-      
-    - name: Test  
-      run: dotnet test FastGithub.sln --no-build --configuration Release --verbosity normal  
-  
-  build-multi-platform:  
-    runs-on: ${{ matrix.os }}  
-    strategy:  
-      matrix:  
-        os: [ubuntu-latest, windows-latest, macos-latest]  
-          
-    steps:  
-    - uses: actions/checkout@v4  
-      
-    - name: Setup .NET  
-      uses: actions/setup-dotnet@v4  
-      with:  
-        dotnet-version: '7.0.x'  
-      
-    - name: Build for ${{ matrix.os }}  
+    - name: Build and Publish  
       run: |  
-        dotnet restore FastGithub.sln  
-        dotnet build FastGithub.sln --configuration Release --verbosity quiet
-          
-    - name: Publish artifacts  
+        dotnet publish FastGithub/FastGithub.csproj \  
+          -c Release \  
+          -r ${{ matrix.runtime }} \  
+          --self-contained true \  
+          -p:PublishSingleFile=true \  
+          -p:PublishTrimmed=true \  
+          -o ./publish/${{ matrix.runtime }}  
+      
+    - name: Create Archive  
       run: |  
-        dotnet publish FastGithub/FastGithub.csproj -c Release -o ./publish/${{ matrix.os }}  
-          
-    - name: Upload artifacts  
+        cd ./publish/${{ matrix.runtime }}  
+        if [[ "${{ matrix.runtime }}" == "win-x64" ]]; then  
+          zip -r ../../fastgithub-${{ matrix.runtime }}.zip .  
+        else  
+          tar -czf ../../fastgithub-${{ matrix.runtime }}.tar.gz .  
+        fi  
+      
+    - name: Upload Artifacts  
       uses: actions/upload-artifact@v4  
       with:  
-        name: fastgithub-${{ matrix.os }}  
-        path: ./publish/${{ matrix.os }}
+        name: fastgithub-${{ matrix.runtime }}  
+        path: |  
+          fastgithub-${{ matrix.runtime }}.*
